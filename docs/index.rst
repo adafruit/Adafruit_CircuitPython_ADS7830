@@ -24,14 +24,12 @@ Table of Contents
 .. toctree::
     :caption: Tutorials
 
-.. todo:: Add any Learn guide links here. If there are none, then simply delete this todo and leave
-    the toctree above for use later.
+    Adafruit ADS7830 8-Channel 8-Bit ADC Learn Guide <https://learn.adafruit.com/adafruit-ads7830-8-channel-8-bit-adc>
 
 .. toctree::
     :caption: Related Products
 
-.. todo:: Add any product links here. If there are none, then simply delete this todo and leave
-    the toctree above for use later.
+    Adafruit ADS7830 8-Channel 8-Bit ADC with I2C <https://www.adafruit.com/product/5836>
 
 .. toctree::
     :caption: Other Links
