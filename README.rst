@@ -94,6 +94,7 @@ Usage Example
 =============
 
 .. code-block:: python
+
     import time
     import board
     import adafruit_ads7830
