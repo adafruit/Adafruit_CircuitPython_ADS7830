@@ -15,5 +15,5 @@ adc = ADC.ADS7830(i2c)
 chan = AnalogIn(adc, 0)
 
 while True:
-    print(f"ADC channel {0} = {chan.value}")
+    print(f"ADC channel 0 = {chan.value}")
     time.sleep(0.1)
