@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-`adafruit_ads7830`
+:py:class:`~adafruit_ads7830.ads7830.ADS7830`
 ================================================================================
 
 CircuitPython driver for the ADS7830 analog to digital converter
@@ -40,16 +40,21 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_ADS7830.git"
 _I2C_ADDR = const(0x48)
 
 
-class Adafruit_ADS7830:
+class ADS7830:
     """Adafruit ADS7830 ADC driver"""
 
-    # Power-down modes
-    _POWER_DOWN_MODES = [
-        0x00,  # POWER_DOWN_BETWEEN_CONVERSIONS
-        0x01,  # INTERNAL_REF_OFF_ADC_ON
-        0x02,  # INTERNAL_REF_ON_ADC_OFF
-        0x03,  # INTERNAL_REF_ON_ADC_ON (default)
+    POWER_DOWN_MODES = [
+        0x00,
+        0x01,
+        0x02,
+        0x03,
     ]
+    """Power down modes
+
+    :param int 0: power down between conversions
+    :param int 1: internal reference off, ADC on
+    :param int 2: internal reference on, ADC off
+    :param int 3: internal reference on, ADC on (default)"""
     # Single channel selection list
     _CHANNEL_SELECTION = [
         0x08,  # SINGLE_CH0
@@ -73,24 +78,42 @@ class Adafruit_ADS7830:
         0x07,  # DIFF_CH7_CH6
     ]
 
-    def __init__(self, i2c: I2C, address: int = _I2C_ADDR) -> None:
-        self.i2c_device = I2CDevice(i2c, address)
+    def __init__(
+        self,
+        i2c: I2C,
+        address: int = _I2C_ADDR,
+        diff_mode: bool = False,
+        pd_mode: int = 3,
+    ) -> None:
+        """Initialization over I2C
 
-    def _single_channel(self, channel: int, pd_mode: int = 3) -> int:
-        """ADC value in single-ended mode
+        :param int address: I2C address (default 0x48)
+        :param bool diff_mode: Select differential vs. single mode
+        :param int pd_mode: Select power down mode (default internal reference on, ADC on)
+        """
+        self.i2c_device = I2CDevice(i2c, address)
+        self.power = self.POWER_DOWN_MODES[pd_mode]
+        self.differential_mode = diff_mode
+
+    def read(self, channel: int) -> int:
+        """ADC value
+
         Scales the 8-bit ADC value to a 16-bit value
 
         :param int channel: Channel (0-7)
         :param int pd_mode: Power-down mode
+        :param bool diff: Differential vs. single read mode
         :return: Scaled ADC value or raise an exception if read failed
         :rtype: int
         """
         if channel > 7:
             raise ValueError("Invalid channel: must be 0-7")
-
-        command_byte = self._CHANNEL_SELECTION[channel]
+        if self.differential_mode:
+            command_byte = self._DIFF_CHANNEL_SELECTION[channel // 2]
+        else:
+            command_byte = self._CHANNEL_SELECTION[channel]
         command_byte <<= 4
-        command_byte |= self._POWER_DOWN_MODES[pd_mode] << 2
+        command_byte |= self.power << 2
 
         with self.i2c_device as i2c:
             try:
@@ -101,51 +124,3 @@ class Adafruit_ADS7830:
                 return adc_value[0] << 8
             except Exception as error:
                 raise RuntimeError(f"Failed to read value: {error}") from error
-
-    def _differential_channel(self, channel: int, pd_mode: int = 3) -> int:
-        """ADC value in differential mode
-        Scales the 8-bit ADC value to a 16-bit value
-
-        :param int channel: Positive channel for differential reading (0-7)
-        :param int pd_mode: Power-down mode
-        :return: Scaled ADC value or raise an exception if read failed
-        :rtype: int
-        """
-        if channel > 7:
-            raise ValueError("Invalid channel: must be 0-7")
-
-        command_byte = self._DIFF_CHANNEL_SELECTION[channel // 2]
-        command_byte <<= 4
-        command_byte |= self._POWER_DOWN_MODES[pd_mode] << 2
-
-        with self.i2c_device as i2c:
-            try:
-                # Buffer to store the read ADC value
-                adc_value = bytearray(1)
-                i2c.write_then_readinto(bytearray([command_byte]), adc_value)
-                # Scale the 8-bit value to 16-bit
-                return adc_value[0] << 8
-            except Exception as error:
-                raise RuntimeError(f"Failed to read value: {error}") from error
-
-    @property
-    def value(self) -> typing.List[int]:
-        """Single-ended mode ADC values for all channels
-
-        :rtype: List[int]"""
-        values = []
-        for i in range(8):
-            single_value = self._single_channel(i)
-            values.append(single_value)
-        return values
-
-    @property
-    def differential_value(self) -> typing.List[int]:
-        """Differential ADC values for all channel pairs
-
-        :rtype: List[int]"""
-        values = []
-        for i in range(0, 8, 2):  # Iterate over channel pairs
-            diff_value = self._differential_channel(i)
-            values.append(diff_value)
-        return values

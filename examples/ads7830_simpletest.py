@@ -1,19 +1,19 @@
 # SPDX-FileCopyrightText: 2023 Liz Clark for Adafruit Industries
 # SPDX-License-Identifier: MIT
 
-# Simple demo to read 8 analog inputs
-# from ADS7830 ADC
+# Simple demo to read analog input on channel 0
 
 import time
 import board
-import adafruit_ads7830
+import adafruit_ads7830.ads7830 as ADC
+from adafruit_ads7830.analog_in import AnalogIn
 
 i2c = board.I2C()
 
 # Initialize ADS7830
-adc = adafruit_ads7830.Adafruit_ADS7830(i2c)
+adc = ADC.ADS7830(i2c)
+chan = AnalogIn(adc, 0)
 
 while True:
-    for i in range(8):
-        print(f"ADC channel {i} = {adc.value[i]}")
+    print(f"ADC channel {0} = {chan.value}")
     time.sleep(0.1)
