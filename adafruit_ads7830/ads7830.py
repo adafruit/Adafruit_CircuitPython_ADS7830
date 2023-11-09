@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-:py:class:`~adafruit_ads7830.ads7830.ADS7830`
+`adafruit_ads7830`
 ================================================================================
 
 CircuitPython driver for the ADS7830 analog to digital converter
@@ -43,18 +43,12 @@ _I2C_ADDR = const(0x48)
 class ADS7830:
     """Adafruit ADS7830 ADC driver"""
 
-    POWER_DOWN_MODES = [
-        0x00,
-        0x01,
-        0x02,
-        0x03,
+    _POWER_DOWN_MODES = [
+        (True, True),  # power down ref and adc
+        (True, False),  # power down ref and not adc
+        (False, True),  # power down adc and not ref
+        (False, False),  # do not power down ref or adc
     ]
-    """Power down modes
-
-    :param int 0: power down between conversions
-    :param int 1: internal reference off, ADC on
-    :param int 2: internal reference on, ADC off
-    :param int 3: internal reference on, ADC on (default)"""
     # Single channel selection list
     _CHANNEL_SELECTION = [
         0x08,  # SINGLE_CH0
@@ -78,31 +72,32 @@ class ADS7830:
         0x07,  # DIFF_CH7_CH6
     ]
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         i2c: I2C,
         address: int = _I2C_ADDR,
         diff_mode: bool = False,
-        pd_mode: int = 3,
+        int_ref_pd: bool = False,
+        adc_pd: bool = False,
     ) -> None:
         """Initialization over I2C
 
         :param int address: I2C address (default 0x48)
         :param bool diff_mode: Select differential vs. single mode
-        :param int pd_mode: Select power down mode (default internal reference on, ADC on)
+        :param bool int_ref_pd: Power down mode for internal reference (defaults to False)
+        :param bool adc_pd: Power down mode for ADC (defaults to False)
         """
         self.i2c_device = I2CDevice(i2c, address)
-        self.power = self.POWER_DOWN_MODES[pd_mode]
+        _pd = (int_ref_pd, adc_pd)
+        self.power_down = self._POWER_DOWN_MODES.index(_pd)
         self.differential_mode = diff_mode
 
     def read(self, channel: int) -> int:
         """ADC value
-
         Scales the 8-bit ADC value to a 16-bit value
 
         :param int channel: Channel (0-7)
-        :param int pd_mode: Power-down mode
-        :param bool diff: Differential vs. single read mode
         :return: Scaled ADC value or raise an exception if read failed
         :rtype: int
         """
@@ -113,7 +108,7 @@ class ADS7830:
         else:
             command_byte = self._CHANNEL_SELECTION[channel]
         command_byte <<= 4
-        command_byte |= self.power << 2
+        command_byte |= self.power_down << 2
 
         with self.i2c_device as i2c:
             try:
