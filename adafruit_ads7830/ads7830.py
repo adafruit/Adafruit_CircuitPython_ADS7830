@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-`adafruit_ads7830`
+:py:class:`~adafruit_ads7830.ads7830.ADS7830`
 ================================================================================
 
 CircuitPython driver for the ADS7830 analog to digital converter
