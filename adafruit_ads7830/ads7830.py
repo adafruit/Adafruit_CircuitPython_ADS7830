@@ -43,12 +43,6 @@ _I2C_ADDR = const(0x48)
 class ADS7830:
     """Adafruit ADS7830 ADC driver"""
 
-    _POWER_DOWN_MODES = [
-        (True, True),  # power down ref and adc
-        (True, False),  # power down ref and not adc
-        (False, True),  # power down adc and not ref
-        (False, False),  # do not power down ref or adc
-    ]
     # Single channel selection list
     _CHANNEL_SELECTION = [
         0x08,  # SINGLE_CH0
@@ -77,21 +71,24 @@ class ADS7830:
         self,
         i2c: I2C,
         address: int = _I2C_ADDR,
-        diff_mode: bool = False,
-        int_ref_pd: bool = False,
-        adc_pd: bool = False,
+        differential_mode: bool = False,
+        int_ref_power_down: bool = False,
+        adc_power_down: bool = False,
     ) -> None:
         """Initialization over I2C
 
         :param int address: I2C address (default 0x48)
-        :param bool diff_mode: Select differential vs. single mode
-        :param bool int_ref_pd: Power down mode for internal reference (defaults to False)
-        :param bool adc_pd: Power down mode for ADC (defaults to False)
+        :param bool differential_mode: Select differential vs. single mode
+        :param bool int_ref_power_down: Power down mode for internal reference (defaults to False)
+        :param bool adc_power_down: Power down mode for ADC (defaults to False)
         """
         self.i2c_device = I2CDevice(i2c, address)
-        _pd = (int_ref_pd, adc_pd)
-        self.power_down = self._POWER_DOWN_MODES.index(_pd)
-        self.differential_mode = diff_mode
+        self.power_down = 0
+        if not int_ref_power_down:
+            self.power_down |= 2
+        if not adc_power_down:
+            self.power_down |= 1
+        self.differential_mode = differential_mode
 
     def read(self, channel: int) -> int:
         """ADC value
