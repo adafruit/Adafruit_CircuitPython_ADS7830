@@ -83,11 +83,12 @@ class ADS7830:
         :param bool adc_power_down: Power down ADC after sampling
         """
         self.i2c_device = I2CDevice(i2c, address)
-        self.power_down = 0
+        _pd = 0
         if not int_ref_power_down:
-            self.power_down |= 2
+            _pd |= 2
         if not adc_power_down:
-            self.power_down |= 1
+            _pd |= 1
+        self.power_down = _pd
         self.differential_mode = differential_mode
 
     def read(self, channel: int) -> int:
