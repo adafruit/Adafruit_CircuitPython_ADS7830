@@ -79,8 +79,8 @@ class ADS7830:
 
         :param int address: I2C address (default 0x48)
         :param bool differential_mode: Select differential vs. single mode
-        :param bool int_ref_power_down: Power down mode for internal reference (defaults to False)
-        :param bool adc_power_down: Power down mode for ADC (defaults to False)
+        :param bool int_ref_power_down: Power down internal reference after sampling
+        :param bool adc_power_down: Power down ADC after sampling
         """
         self.i2c_device = I2CDevice(i2c, address)
         self.power_down = 0
