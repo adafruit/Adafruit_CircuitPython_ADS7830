@@ -29,7 +29,8 @@ from adafruit_bus_device.i2c_device import I2CDevice
 from micropython import const
 
 try:
-    import typing  # pylint: disable=unused-import
+    import typing
+
     from busio import I2C
 except ImportError:
     pass
@@ -66,7 +67,6 @@ class ADS7830:
         0x07,  # DIFF_CH7_CH6
     ]
 
-    # pylint: disable=too-many-arguments
     def __init__(
         self,
         i2c: I2C,
