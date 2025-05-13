@@ -4,7 +4,9 @@
 # Simple demo to read analog input on channel 0
 
 import time
+
 import board
+
 import adafruit_ads7830.ads7830 as ADC
 from adafruit_ads7830.analog_in import AnalogIn
 
